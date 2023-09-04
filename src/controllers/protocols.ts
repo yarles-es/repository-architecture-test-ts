@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Request } from "express";
 
-// interface Message {
-//   message: string;
-// }
 export interface HttpResponse<T> {
   statusCode: number;
   body: T | string;
@@ -10,6 +7,10 @@ export interface HttpResponse<T> {
 
 export interface HttpRequest<B> {
   body?: B;
-  params?: any;
-  headers?: any;
+  params?: Request["params"];
+  headers?: Request["headers"];
+}
+
+export interface IController<T = unknown> {
+  handle(httpRequest: HttpRequest<T>): Promise<HttpResponse<unknown>>;
 }

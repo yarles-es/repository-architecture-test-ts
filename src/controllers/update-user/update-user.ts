@@ -1,19 +1,23 @@
 import { User } from "../../models/user";
-import { HttpRequest, HttpResponse } from "../protocols";
-import { IUpdateUserController, IUpdateUserRepository, UpdateUserParams } from "./protocols";
+import { HttpResponseHelper } from "../../utils/http-response-helpers/helpers";
+import { HttpRequest, HttpResponse, IController } from "../protocols";
+import { IUpdateUserRepository, UpdateUserParams } from "./protocols";
 
-export class UpdateUserController implements IUpdateUserController {
+export class UpdateUserController implements IController<UpdateUserParams> {
   constructor(private readonly updateUserRepository: IUpdateUserRepository) {}
-  async handle(httpRequest: HttpRequest<any>): Promise<HttpResponse<User>> {
+  async handle(
+    httpRequest: HttpRequest<UpdateUserParams>
+  ): Promise<HttpResponse<User>> {
     try {
       const id = httpRequest?.params?.id;
       const body = httpRequest.body;
 
+      if (!body) {
+        return HttpResponseHelper.badRequest("Missing body");
+      }
+
       if (!id) {
-        return {
-          statusCode: 400,
-          body: "Missing param: id",
-        };
+        return HttpResponseHelper.badRequest("Missing id");
       }
 
       const allowedFieldsToUpdate: (keyof UpdateUserParams)[] = [
@@ -26,24 +30,16 @@ export class UpdateUserController implements IUpdateUserController {
       );
 
       if (someFieldIsNotAllowedToUpdate) {
-        return {
-          statusCode: 400,
-          body: "Some field is not allowed to update",
-        };
+        return HttpResponseHelper.badRequest(
+          "Some field is not allowed to update"
+        );
       }
 
       const user = await this.updateUserRepository.updateUser(id, body);
 
-      return {
-        statusCode: 200,
-        body: user,
-      };
-      
+      return HttpResponseHelper.ok<User>(user);
     } catch (error) {
-      return {
-        statusCode: 500,
-        body: "Something went wrong",
-      };
+      return HttpResponseHelper.serverError();
     }
   }
 }

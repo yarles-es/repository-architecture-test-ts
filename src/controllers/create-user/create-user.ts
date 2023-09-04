@@ -1,39 +1,35 @@
 import validator from "validator";
 import { User } from "../../models/user";
-import { HttpRequest, HttpResponse } from "../protocols";
-import {
-  CreateUserParams,
-  ICreateUserController,
-  ICreateUserRepository,
-} from "./protocols";
+import { HttpRequest, HttpResponse, IController } from "../protocols";
+import { CreateUserParams, ICreateUserRepository } from "./protocols";
+import { HttpResponseHelper } from "../../utils/http-response-helpers/helpers";
 
-export class CreateUserController implements ICreateUserController {
+export class CreateUserController implements IController<CreateUserParams> {
   constructor(private readonly createUserRepository: ICreateUserRepository) {}
   async handle(
     httpRequest: HttpRequest<CreateUserParams>
-  ): Promise<HttpResponse<User>> {
+  ): Promise<HttpResponse<User | string>> {
     try {
-      //validação do body;
       const requiredFields = ["firstName", "lastName", "password", "email"];
+
       for (const field of requiredFields) {
         if (!httpRequest.body?.[field as keyof CreateUserParams]) {
-          return { statusCode: 400, body: `Missing param: ${field}` };
+          return HttpResponseHelper.badRequest(`${field} is required`);
         }
       }
 
-      //validação do email
       const emailIsvalid = validator.isEmail(httpRequest.body!.email);
       if (!emailIsvalid) {
-        return { statusCode: 400, body: "Invalid email" };
+        return HttpResponseHelper.badRequest("Invalid email");
       }
 
       const user = await this.createUserRepository.createUser(
         httpRequest.body!
       );
 
-      return { statusCode: 201, body: user };
+      return HttpResponseHelper.created(user);
     } catch (error) {
-      return { statusCode: 500, body: "Something went wrong" };
+      return HttpResponseHelper.serverError();
     }
   }
 }
