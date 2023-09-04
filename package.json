@@ -1,0 +1,26 @@
+{
+  "name": "test-new-architecture-ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "nodemon --watch 'src/' --exec 'ts-node src/index.ts' -e ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yarles-es/test-new-architecture-ts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yarles-es/test-new-architecture-ts/issues"
+  },
+  "homepage": "https://github.com/yarles-es/test-new-architecture-ts#readme",
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typescript": "^5.2.2"
+  }
+}
