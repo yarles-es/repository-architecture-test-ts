@@ -8,11 +8,11 @@ import { UserTransformer } from "../../utils/mongo-helpers/mongo-helpers";
 
 export class MongoCreateUserRepository implements ICreateUserRepository {
   async createUser(params: CreateUserParams): Promise<User> {
-    const { insertedId } = await MongoClient.db
-      .collection("users")
-      .insertOne(params);
+    const db = MongoClient.getDatabase();
 
-    const user = await MongoClient.db
+    const { insertedId } = await db.collection("users").insertOne(params);
+
+    const user = await db
       .collection<Omit<User, "id">>("users")
       .findOne({ _id: insertedId });
 

@@ -5,7 +5,8 @@ import { UserTransformer } from "../../utils/mongo-helpers/mongo-helpers";
 
 export class MongoGetUsersRepository implements IGetUsersRepository {
   async getUsers(): Promise<User[]> {
-    const users = await MongoClient.db
+    const db = MongoClient.getDatabase();
+    const users = await db
       .collection<Omit<User, "id">>("users")
       .find({})
       .toArray();

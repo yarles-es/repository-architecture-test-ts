@@ -6,7 +6,8 @@ import { UserTransformer } from "../../utils/mongo-helpers/mongo-helpers";
 
 export class MongoDeleteUserRepository implements IDeleteUserRepository {
   async deleteUser(id: string): Promise<User> {
-    const deletedUser = await MongoClient.db
+    const db = MongoClient.getDatabase();
+    const deletedUser = await db
       .collection<Omit<User, "id">>("users")
       .findOneAndDelete({ _id: new ObjectId(id) });
 
