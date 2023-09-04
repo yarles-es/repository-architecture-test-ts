@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from "../../models/user";
 import { HttpRequest, HttpResponse } from "../protocols";
 import { IUpdateUserController, IUpdateUserRepository, UpdateUserParams } from "./protocols";
