@@ -33,11 +33,11 @@ Este projeto, denominado `test-new-architecture-ts`, é uma exploração do Padr
     
   Isso iniciará todos os serviços definidos no docker-compose.yml, incluindo o banco de dados MongoDB e a aplicação.
 
-5. **Instale as Dependências:**
+4. **Instale as Dependências:**
    ```bash
    npm install
    
-6. **Inicie o Servidor de Desenvolvimento:**
+4. **Inicie o Servidor de Desenvolvimento:**
    ```bash
    npm run start:dev
 
