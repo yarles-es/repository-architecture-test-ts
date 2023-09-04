@@ -6,9 +6,9 @@ export class MongoGetUsersRepository implements IGetUsersRepository {
   async getUsers(): Promise<User[]> {
     const users = await MongoClient.db
       .collection<Omit<User, "id">>("users")
-      .find()
+      .find({})
       .toArray();
-
+      
     return users.map(({ _id, ...user }) => ({
       ...user,
       id: _id.toHexString(),
