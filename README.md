@@ -26,11 +26,17 @@ Este projeto, denominado `test-new-architecture-ts`, é uma exploração do Padr
    ```bash
    cd test-new-architecture-ts
 
-3. **Instale as Dependências:**
+3. **Utilizando Docker:**
+Se você tem o Docker e o docker-compose instalados, pode iniciar o projeto usando o seguinte comando:
+    ```bash
+   docker-compose up
+Isso iniciará todos os serviços definidos no docker-compose.yml, incluindo o banco de dados MongoDB e a aplicação.
+
+5. **Instale as Dependências:**
    ```bash
    npm install
    
-4. **Inicie o Servidor de Desenvolvimento:**
+6. **Inicie o Servidor de Desenvolvimento:**
    ```bash
    npm run start:dev
 
