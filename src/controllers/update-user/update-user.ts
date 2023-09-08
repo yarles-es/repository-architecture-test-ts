@@ -9,31 +9,12 @@ export class UpdateUserController implements IController<UpdateUserParams> {
     httpRequest: HttpRequest<UpdateUserParams>
   ): Promise<HttpResponse<User>> {
     try {
-      const id = httpRequest?.params?.id;
-      const body = httpRequest.body;
-
-      if (!body) {
-        return HttpResponseHelper.badRequest("Missing body");
+      if (!httpRequest.params || !httpRequest.body) {
+        return HttpResponseHelper.badRequest("Missing parameters or body");
       }
 
-      if (!id) {
-        return HttpResponseHelper.badRequest("Missing id");
-      }
-
-      const allowedFieldsToUpdate: (keyof UpdateUserParams)[] = [
-        "firstName",
-        "lastName",
-        "password",
-      ];
-      const someFieldIsNotAllowedToUpdate = Object.keys(body).some(
-        (key) => !allowedFieldsToUpdate.includes(key as keyof UpdateUserParams)
-      );
-
-      if (someFieldIsNotAllowedToUpdate) {
-        return HttpResponseHelper.badRequest(
-          "Some field is not allowed to update"
-        );
-      }
+      const { id } = httpRequest.params;
+      const { body } = httpRequest;
 
       const user = await this.updateUserRepository.updateUser(id, body);
 
