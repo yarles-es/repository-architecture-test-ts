@@ -1,82 +1,91 @@
 import express from "express";
 import { config } from "dotenv";
-import { MongoGetUsersRepository } from "./repositories/get-users/mongo-get-users";
-import { GetUserController } from "./controllers/get-users/get-users";
 import { MongoClient } from "./database/mongo";
-import { MongoCreateUserRepository } from "./repositories/create-user/mongo-create-user";
+import { UserRoutes } from "./routes/userRoutes";
+import { GetUserController } from "./controllers/get-users/get-users";
 import { CreateUserController } from "./controllers/create-user/create-user";
-import { MongoUpdateUserRepository } from "./repositories/update-user/mongo-update-user";
 import { UpdateUserController } from "./controllers/update-user/update-user";
-import { MongoDeleteUserRepository } from "./repositories/delete-user/mongo-delete-user";
 import { DeleteUserController } from "./controllers/delete-user/delete-user";
+import { MongoCreateUserRepository } from "./repositories/create-user/mongo-create-user";
+import { MongoUpdateUserRepository } from "./repositories/update-user/mongo-update-user";
+import { MongoDeleteUserRepository } from "./repositories/delete-user/mongo-delete-user";
+import { MongoGetUsersRepository } from "./repositories/get-users/mongo-get-users";
+import { UserValidate } from "./middlewares/user-validate/user-validate";
 
-const main = async () => {
-  config();
+class AppInitializer {
+  private app: express.Express;
 
-  const app = express();
+  constructor() {
+    this.app = express();
+  }
 
-  app.use(express.json());
-
-  await MongoClient.connect();
-
-  app.get("/users", async (req, res) => {
-    const mongoGetUsersRepository = new MongoGetUsersRepository();
-
-    const getUserController = new GetUserController(mongoGetUsersRepository);
-
-    const { body, statusCode } = await getUserController.handle();
-
-    res.status(statusCode).json(body);
-  });
-
-  app.post("/users", async (req, res) => {
+  private initializeRepositories() {
+    const mongoGetUserRepository = new MongoGetUsersRepository();
     const mongoCreateUserRepository = new MongoCreateUserRepository();
-
-    const createUserController = new CreateUserController(
-      mongoCreateUserRepository
-    );
-
-    const { body, statusCode } = await createUserController.handle({
-      body: req.body,
-    });
-
-    res.status(statusCode).json(body);
-  });
-
-  app.patch("/users/:id", async (req, res) => {
     const mongoUpdateUserRepository = new MongoUpdateUserRepository();
-
-    const updateUserController = new UpdateUserController(
-      mongoUpdateUserRepository
-    );
-
-    const { body, statusCode } = await updateUserController.handle({
-      params: req.params,
-      body: req.body,
-    });
-
-    res.status(statusCode).json(body);
-  });
-
-  app.delete("/users/:id", async (req, res) => {
     const mongoDeleteUserRepository = new MongoDeleteUserRepository();
 
+    return {
+      mongoGetUserRepository,
+      mongoCreateUserRepository,
+      mongoUpdateUserRepository,
+      mongoDeleteUserRepository,
+    };
+  }
+
+  private initializeControllers(
+    repos: ReturnType<typeof this.initializeRepositories>
+  ) {
+    const getUserController = new GetUserController(
+      repos.mongoGetUserRepository
+    );
+    const createUserController = new CreateUserController(
+      repos.mongoCreateUserRepository
+    );
+    const updateUserController = new UpdateUserController(
+      repos.mongoUpdateUserRepository
+    );
     const deleteUserController = new DeleteUserController(
-      mongoDeleteUserRepository
+      repos.mongoDeleteUserRepository
     );
 
-    const { body, statusCode } = await deleteUserController.handle({
-      params: req.params,
+    return {
+      getUserController,
+      createUserController,
+      updateUserController,
+      deleteUserController,
+    };
+  }
+
+  public async initialize() {
+    config();
+
+    this.app.use(express.json());
+    await MongoClient.connect();
+
+    const repositories = this.initializeRepositories();
+    const controllers = this.initializeControllers(repositories);
+    const userValidate = new UserValidate();
+
+    const userRoutes = new UserRoutes(
+      controllers.getUserController,
+      controllers.createUserController,
+      controllers.updateUserController,
+      controllers.deleteUserController,
+      userValidate
+    ).router;
+
+    this.app.use(userRoutes);
+  }
+
+  public start() {
+    const port = process.env.PORT || 8000;
+    this.app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
     });
+  }
+}
 
-    res.status(statusCode).json(body);
-  })
-
-  const port = process.env.PORT || 8000;
-
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
-};
-
-main();
+const initializer = new AppInitializer();
+initializer.initialize();
+initializer.start();
