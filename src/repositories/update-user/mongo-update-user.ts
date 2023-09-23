@@ -10,27 +10,43 @@ import { UserTransformer } from "../../utils/mongo-helpers/mongo-helpers";
 type MongoUser = Omit<User, "id"> & { _id: ObjectId };
 
 export class MongoUpdateUserRepository implements IUpdateUserRepository {
-  
   async updateUser(id: string, params: UpdateUserParams): Promise<User> {
     const db = MongoClient.getDatabase();
 
-    const returnedDoc = await db.collection("users").findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { $set: { ...params } },
-      { returnDocument: "after" }
-    );
+    const returnedDoc = await db
+      .collection("users")
+      .findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: { ...params } },
+        { returnDocument: "after" }
+      );
 
-    if (!this.isMongoUser(returnedDoc)) {
+    if (!returnedDoc?.value) {
+      throw new Error("User not updated");
+    }
+
+    if (!this.isMongoUser(returnedDoc.value)) {
       throw new Error("Returned document is not a valid MongoUser");
     }
 
-    return UserTransformer.transformId(returnedDoc);
+    return UserTransformer.transformId(returnedDoc.value);
   }
 
   private isMongoUser(doc: unknown): doc is MongoUser {
-    if (typeof doc !== 'object' || doc === null) return false;
+    if (typeof doc !== "object" || doc === null) return false;
 
-    const requiredFields: (keyof MongoUser)[] = ['firstName', 'lastName', 'email', 'password', '_id'];
-    return requiredFields.every(field => field in doc);
+    const requiredFields: (keyof MongoUser)[] = [
+      "firstName",
+      "lastName",
+      "email",
+      "password",
+      "_id",
+    ];
+
+    const docKeys = Object.keys(doc);
+    return (
+      requiredFields.every((field) => field in doc) &&
+      docKeys.length === requiredFields.length
+    );
   }
 }
